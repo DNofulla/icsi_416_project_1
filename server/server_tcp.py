@@ -1,5 +1,6 @@
 import socket as sc
 from sys import argv 
+import os
 
 
 
@@ -21,7 +22,7 @@ def main():
     
 
     flag = True
-    while flag == True:
+    while flag:
         """ Receiving the filename from the client. """
         user_input = server.recv(1024).decode("utf-8")
         print(user_input)
@@ -32,7 +33,7 @@ def main():
         if split_input[0] == 'PUT'.casefold():
             
             print(f"[RECV] Receiving the filename.")
-            file = open(split_input[1], "w")
+            file = open(split_input[1], "w+")
             server.send("Filename received.".encode("utf-8"))
             
             """ Receiving the file data from the client. """
@@ -45,11 +46,26 @@ def main():
             
             
         elif split_input[0] == "GET".casefold():
-            print("GET REQUEST")
+            
+            file = open(split_input[1], "r")
+
+            server.send(str(os.path.getsize(split_input[1])).encode("utf-8"))
+
+            data = file.read()
+            server.send(data.encode("utf-8"))
+            file.close()
+            print(f"Sending file {split_input[1]}!")
             
             
         elif split_input[0] == "KEYWORD".casefold():
-            print("KEYWORD REQUEST")
+            file = open(split_input[2], "r")
+            new_name = split_input[2].replace(".txt", "_anon.txt")
+            new_file = open(new_name, "w+")
+            
+            new_file.write(file.read().replace(split_input[1], "X" * len(split_input[1])))
+            server.send(("File anonymized with name %s!" % new_name).encode("utf-8"))
+            file.close()
+            new_file.close()
             
             
         elif split_input[0] == "QUIT".casefold():

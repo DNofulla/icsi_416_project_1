@@ -18,8 +18,7 @@ def main():
         
             
         if split_input[0] == 'PUT'.casefold():
-            
-            print(split_input)
+
             file = open(split_input[1], "r")
             data = file.read()
             
@@ -32,13 +31,28 @@ def main():
             print(f"[SERVER]: {msg}")
             file.close()
             
-            
         elif split_input[0] == "GET".casefold():
-            print("GET REQUEST")
+            
+            file = open(split_input[1], "w+")
+            
+            client.send(user_input.encode("utf-8"))
+
+            size = client.recv(1024).decode("utf-8")
+            print(f"[SERVER]: File size is {size}!")
+            data = client.recv(int(size)).decode("utf-8")
+            print(f"[SERVER]: File {split_input[1]} sent!")
+            file.write(data)
+            file.close()
+            
             
             
         elif split_input[0] == "KEYWORD".casefold():
-            print("KEYWORD REQUEST")
+            
+            client.send(user_input.encode("utf-8"))
+
+            msg = client.recv(1024).decode("utf-8")
+            print(f"[SERVER]: {msg}!")
+            
             
             
         elif split_input[0] == "QUIT".casefold():
