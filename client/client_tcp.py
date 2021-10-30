@@ -5,9 +5,9 @@ from sys import argv
 
 def main():
     client = sc.socket(sc.AF_INET, sc.SOCK_STREAM)
-    print(argv)
-    print(argv[1])
+    print("Connecting to Server!")
     client.connect((argv[1], int(argv[2])))
+    print(f"Connected to IP: {argv[1]} at Port: {argv[2]}")
 
     flag = True
 
@@ -21,11 +21,11 @@ def main():
             data = file.read()
             client.send(
                 (user_input + " " + str(os.path.getsize(split_input[1]))).encode("utf-8"))
-            msg = client.recv(1024).decode("utf-8")
-            print(f"[SERVER]: {msg}")
+            message = client.recv(1024).decode("utf-8")
+            print(f"Server: {message}")
             client.send(data.encode("utf-8"))
-            msg = client.recv(1024).decode("utf-8")
-            print(f"[SERVER]: {msg}")
+            message = client.recv(1024).decode("utf-8")
+            print(f"Server: {message}")
             file.close()
 
         elif split_input[0].upper() == "GET":
@@ -33,17 +33,17 @@ def main():
             file = open(split_input[1], "w+")
             client.send(user_input.encode("utf-8"))
             size = client.recv(1024).decode("utf-8")
-            print(f"[SERVER]: File size is {size}!")
+            print(f"Server: File size is {size}!")
             data = client.recv(int(size)).decode("utf-8")
-            print(f"[SERVER]: File {split_input[1]} sent!")
+            print(f"Server: File {split_input[1]} sent!")
             file.write(data)
             file.close()
 
         elif split_input[0].upper() == "KEYWORD":
 
             client.send(user_input.encode("utf-8"))
-            msg = client.recv(1024).decode("utf-8")
-            print(f"[SERVER]: {msg}!")
+            message = client.recv(1024).decode("utf-8")
+            print(f"Server: {message}!")
 
         elif split_input[0].upper() == "QUIT":
 
