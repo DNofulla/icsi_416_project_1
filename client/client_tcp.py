@@ -2,58 +2,151 @@ import socket as sc
 import os
 from sys import argv
 
+"""client_tcp.py: TCP Implementation of a client socket"""
+
+__author__ = "Daniel Nofulla"
+__version__ = "1.0.0"
+__email__ = "dnofulla@albany.edu"
+
+"""Main Function
+
+This function runs the python program!
+"""
+
 
 def main():
+    """Client starts and Connects to a server
+
+    To run this TCP Client, make sure to use python3 and 
+    run it like this:
+
+    python3 client_tcp.py <server_ip_address> <port> 
+    """
+
     client = sc.socket(sc.AF_INET, sc.SOCK_STREAM)
-    print("Connecting to Server!")
+    print("Connecting to Server...")
     client.connect((argv[1], int(argv[2])))
-    print(f"Connected to IP: {argv[1]} at Port: {argv[2]}")
+    print(f"Connected to IP: {argv[1]} at Port: {argv[2]}!")
 
     flag = True
 
     while flag:
+
+        """Client Receives input from the user
+
+        The client receives input from the user. 
+        The client receives up to 1024 bytes of input. The client
+        then converts that input to an argument array, for easy
+        access to each argument in the user input.
+        """
+
         user_input = input("Enter a command: ")
-        split_input = user_input.split()
+        arguments = user_input.split()
 
-        if split_input[0].upper() == 'PUT':
+        if arguments[0].upper() == 'PUT':
 
-            file = open(split_input[1], "r")
+            """PUT COMMAND
+
+            This Command is used like this:
+
+            PUT <file>
+
+            When the put command is received, the client sends
+            a message to the server with the user input and the size
+            of the file to be uploaded. The client then receives a message
+            from the server confirming the data was received and then the 
+            client then sends the data of the file to be uploaded. Finally,
+            the client receives a final response from the server saying the
+            file has been uploaded.
+            """
+
+            file = open(arguments[1], "r")
             data = file.read()
             client.send(
-                (user_input + " " + str(os.path.getsize(split_input[1]))).encode("utf-8"))
+                (user_input + " " + str(os.path.getsize(arguments[1]))).encode("utf-8"))
             message = client.recv(1024).decode("utf-8")
-            print(f"Server: {message}")
             client.send(data.encode("utf-8"))
+
+            print("Awaiting server response.")
             message = client.recv(1024).decode("utf-8")
-            print(f"Server: {message}")
+            print(f"Server response: {message}")
             file.close()
 
-        elif split_input[0].upper() == "GET":
+        elif arguments[0].upper() == "GET":
 
-            file = open(split_input[1], "w+")
+            """GET COMMAND
+
+            This Command is used like this:
+
+            GET <file>
+
+            The client first sends the user input to the server.
+            Then the client proceeds to receive the size of the file
+            to be downloaded and the file data of the file to be 
+            downloaded. Them the client copies the data to a new file.
+            Finally the client receives a response from the server saying
+            that the file has been downloaded.
+            """
+
+            file = open(arguments[1], "w+")
             client.send(user_input.encode("utf-8"))
             size = client.recv(1024).decode("utf-8")
-            print(f"Server: File size is {size}!")
             data = client.recv(int(size)).decode("utf-8")
-            print(f"Server: File {split_input[1]} sent!")
             file.write(data)
+            response = client.recv(1024).decode("utf-8")
+            print(f"{response}")
             file.close()
 
-        elif split_input[0].upper() == "KEYWORD":
+        elif arguments[0].upper() == "KEYWORD":
+
+            """KEYWORD COMMAND
+
+            This Command is used like this:
+
+            KEYWORD <keyword_to_be_anonymized> <file>
+
+            The client simply sends the user input to the server.
+            When the process is done on the server side, the client
+            receives a message from the server that the file requested
+            has been anonymized into a new file, and also receives that
+            new anonymized file's name in the same message.
+            """
 
             client.send(user_input.encode("utf-8"))
+            print("Awaiting server response.")
+
             message = client.recv(1024).decode("utf-8")
-            print(f"Server: {message}!")
+            print(f"Server response: {message}!")
 
-        elif split_input[0].upper() == "QUIT":
+        elif arguments[0].upper() == "QUIT":
 
-            client.send(split_input[0].encode("utf-8"))
+            """QUIT COMMAND
+
+            This Command is used like this:
+
+            QUIT <Any extra arguments will be ignored>
+
+            The client simply sends the QUIT command to the server and
+            then closes the socket and prints out that its disconnecting
+            from the server, and then we set the loop flag to false so 
+            that the loop quits.
+            """
+
+            client.send(arguments[0].encode("utf-8"))
             client.close()
-            print(f"DISCONNECTING FROM SERVER")
+            print(f"Exiting program!")
             flag = False
 
         else:
-            print("[ERROR]: THIS COMAND DOES NOT EXIST")
+
+            """Failed Commands
+
+            Failed commands are commands that are not listed above.
+            These commands will be ignored by the client and just simply
+            go to the next request iteration in the loop.
+            """
+
+            print("ERROR: COMAND {arguments[0]} DOES NOT EXIST")
 
 
 if __name__ == "__main__":
