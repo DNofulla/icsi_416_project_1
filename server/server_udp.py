@@ -20,6 +20,19 @@ __author__ = "Daniel Nofulla"
 __version__ = "1.0.0"
 __email__ = "dnofulla@albany.edu"
 
+
+"""STOP AND WAIT PROTOCOL
+
+Sender: Every time there is a packet sent, there needs to be an 
+acknowledgement received from the receiver of the original message.
+
+Receiver: The receiver sends a FIN message back to the Sender after receiving
+the data from the sender first. The FIN message works like an acknowledgement.
+
+Every Request has a timeout duration of 1 second (except for the receiver that
+receives the actual client input).
+"""
+
 """Main Function
 
 This function runs the python program!
