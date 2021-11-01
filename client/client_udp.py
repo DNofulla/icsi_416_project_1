@@ -3,6 +3,17 @@ import os
 from sys import argv
 
 
+# ALL RESOURCES (For the entire assignment)
+# https://docs.python.org/3.7/library/socket.html
+# https://stackoverflow.com/questions/15909064/python-implementation-for-stop-and-wait-algorithm
+# https://github.com/mj2266/stop-and-wait-protocol
+# https://pymotw.com/3/socket/udp.html
+# https://www.youtube.com/watch?v=3QiPPX-KeSc&t=2195s&ab_channel=TechWithTim
+# https://dev.to/black_strok3/difference-between-udp-and-tcp-example-code-1pg1
+# https://wiki.python.org/moin/UdpCommunication
+# https://github.com/DNofulla/Battleship-Game/blob/master/Battleship4.c  (My own implementation in C for my ICSI 333 class game assignment)
+
+
 """client_udp.py: UDP Implementation of a client socket with Stop and Wait Functionality"""
 
 __author__ = "Daniel Nofulla"
@@ -63,6 +74,7 @@ def main():
 
             while True:
                 try:
+                    client.settimeout(1)
                     client.sendto(
                         (user_input + " " + str(os.path.getsize(arguments[1]))).encode("utf-8"), (argv[1], int(argv[2])))
                     client.settimeout(1)
@@ -79,7 +91,7 @@ def main():
                     file.close()
                     break
                 try:
-
+                    client.settimeout(1)
                     client.sendto(data.encode("utf-8"), address)
                     client.settimeout(1)
                     ACK, address = client.recvfrom(1000)
@@ -96,6 +108,7 @@ def main():
                 try:
                     client.settimeout(1)
                     msg, address = client.recvfrom(1000)
+                    client.settimeout(1)
                     client.sendto("ACK".encode("utf-8"), address)
                     break
                 except sc.timeout:
@@ -124,6 +137,7 @@ def main():
 
             while True:
                 try:
+                    client.settimeout(1)
                     client.sendto(user_input.encode("utf-8"),
                                   (argv[1], int(argv[2])))
                     client.settimeout(1)
@@ -138,6 +152,7 @@ def main():
                 try:
                     client.settimeout(1)
                     size, address = client.recvfrom(1000)
+                    client.settimeout(1)
                     client.sendto("ACK".encode("utf-8"), address)
                     break
                 except sc.timeout:
@@ -151,28 +166,25 @@ def main():
                     data, address = client.recvfrom(1000)
                     data = data.decode("utf-8")
                     file.write(data)
+                    client.settimeout(1)
                     client.sendto("ACK".encode("utf-8"), address)
                     if len(data) < 1000 and size % 1000 != 0:
                         break
                 except sc.timeout:
                     print("Data transmission terminated prematurely.")
 
-            # data, address = client.recvfrom(int(size))
-            # data = data.decode("utf-8")
-
-            print("Awaiting server response.")
-
             while True:
                 try:
                     client.settimeout(1)
                     msg, address = client.recvfrom(1000)
+                    client.settimeout(1)
                     client.sendto("ACK".encode("utf-8"), address)
                     break
                 except sc.timeout:
                     print("Did not receive data. Terminating.")
 
             msg = msg.decode("utf-8")
-            print(f"Server response: {msg}")
+            print(f"{msg}")
 
             file.close()
 
@@ -193,6 +205,7 @@ def main():
 
             while True:
                 try:
+                    client.settimeout(1)
                     client.sendto(user_input.encode("utf-8"),
                                   (argv[1], int(argv[2])))
                     client.settimeout(1)
@@ -209,6 +222,7 @@ def main():
                 try:
                     client.settimeout(1)
                     msg, address = client.recvfrom(1000)
+                    client.settimeout(1)
                     client.sendto("ACK".encode("utf-8"), address)
                     break
                 except sc.timeout:
@@ -233,6 +247,7 @@ def main():
 
             while True:
                 try:
+                    client.settimeout(1)
                     client.sendto(user_input.encode("utf-8"),
                                   (argv[1], int(argv[2])))
                     client.settimeout(1)

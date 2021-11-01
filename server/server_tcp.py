@@ -2,6 +2,18 @@ import socket as sc
 from sys import argv
 import os
 
+
+# ALL RESOURCES (For the entire assignment)
+# https://docs.python.org/3.7/library/socket.html
+# https://stackoverflow.com/questions/15909064/python-implementation-for-stop-and-wait-algorithm
+# https://github.com/mj2266/stop-and-wait-protocol
+# https://pymotw.com/3/socket/udp.html
+# https://www.youtube.com/watch?v=3QiPPX-KeSc&t=2195s&ab_channel=TechWithTim
+# https://dev.to/black_strok3/difference-between-udp-and-tcp-example-code-1pg1
+# https://wiki.python.org/moin/UdpCommunication
+# https://github.com/DNofulla/Battleship-Game/blob/master/Battleship4.c  (My own implementation in C for my ICSI 333 class game assignment)
+
+
 """server_tcp.py: TCP Implementation of a server socket"""
 
 __author__ = "Daniel Nofulla"

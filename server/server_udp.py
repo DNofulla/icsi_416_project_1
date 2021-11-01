@@ -2,6 +2,18 @@ import socket as sc
 from sys import argv
 import os
 
+
+# ALL RESOURCES (For the entire assignment)
+# https://docs.python.org/3.7/library/socket.html
+# https://stackoverflow.com/questions/15909064/python-implementation-for-stop-and-wait-algorithm
+# https://github.com/mj2266/stop-and-wait-protocol
+# https://pymotw.com/3/socket/udp.html
+# https://www.youtube.com/watch?v=3QiPPX-KeSc&t=2195s&ab_channel=TechWithTim
+# https://dev.to/black_strok3/difference-between-udp-and-tcp-example-code-1pg1
+# https://wiki.python.org/moin/UdpCommunication
+# https://github.com/DNofulla/Battleship-Game/blob/master/Battleship4.c  (My own implementation in C for my ICSI 333 class game assignment)
+
+
 """server_udp.py: UDP Implementation of a server socket with Stop and Wait Functionality"""
 
 __author__ = "Daniel Nofulla"
@@ -44,6 +56,7 @@ def main():
                 # to the server for 1000 seconds, it will timeout.
                 server.settimeout(1000)
                 client_input, address = server.recvfrom(1000)
+                server.settimeout(1)
                 server.sendto("ACK".encode("utf-8"), address)
                 break
             except sc.timeout:
@@ -84,6 +97,7 @@ def main():
                     data, address = server.recvfrom(1000)
                     data = data.decode("utf-8")
                     file.write(data)
+                    server.settimeout(1)
                     server.sendto("ACK".encode("utf-8"), address)
                     if len(data) < 1000 and remaining_size % 1000 != 0:
                         break
@@ -96,6 +110,7 @@ def main():
 
             while True:
                 try:
+                    server.settimeout(1)
                     server.sendto(
                         "File uploaded.".encode("utf-8"),
                         address)
@@ -129,6 +144,7 @@ def main():
 
             while True:
                 try:
+                    server.settimeout(1)
                     server.sendto(
                         str(os.path.getsize(arguments[1])).encode("utf-8"), address)
                     server.settimeout(1)
@@ -139,15 +155,8 @@ def main():
                 except sc.timeout:
                     print("Did not receive ACK. Terminating.")
 
-            # server.sendto(
-            #     str(os.path.getsize(arguments[1])).encode("utf-8"), address)
-
             print(f"Sent file data for {arguments[1]}")
-
-            # data = file.read()
             print("Sending file data to the client...")
-
-            # server.sendto(data.encode("utf-8"), address)
 
             while True:
                 data = file.read(1000)
@@ -155,7 +164,7 @@ def main():
                     file.close()
                     break
                 try:
-
+                    server.settimeout(1)
                     server.sendto(data.encode("utf-8"), address)
                     server.settimeout(1)
                     ACK, address = server.recvfrom(1000)
@@ -170,6 +179,7 @@ def main():
 
             while True:
                 try:
+                    server.settimeout(1)
                     server.sendto(
                         ("File %s downloaded." %
                          arguments[1]).encode("utf-8"), address)
@@ -217,6 +227,7 @@ def main():
 
             while True:
                 try:
+                    server.settimeout(1)
                     server.sendto(("File %s anonymized. Output file is %s" %
                                    (old_name, new_name)).encode("utf-8"), address)
                     server.settimeout(1)
