@@ -57,7 +57,7 @@ def main():
                 server.settimeout(1000)
                 client_input, address = server.recvfrom(1000)
                 server.settimeout(1)
-                server.sendto("ACK".encode("utf-8"), address)
+                server.sendto("FIN".encode("utf-8"), address)
                 break
             except sc.timeout:
                 print("Did not receive data. Terminating.")
@@ -87,7 +87,18 @@ def main():
             print(f"Client uploading file {arguments[1]}...")
             file = open(arguments[1], "w+")
 
-            remaining_size = int(arguments[2])
+            while True:
+                try:
+                    server.settimeout(1)
+                    remaining_size, address = server.recvfrom(1000)
+                    server.settimeout(1)
+                    server.sendto("FIN".encode("utf-8"), address)
+                    break
+                except sc.timeout:
+                    print("Data transmission terminated prematurely.")
+
+            remaining_size = int(
+                (remaining_size.decode("utf-8")).split(':')[1])
 
             print(f"Receiving the file data...")
 
@@ -98,7 +109,7 @@ def main():
                     data = data.decode("utf-8")
                     file.write(data)
                     server.settimeout(1)
-                    server.sendto("ACK".encode("utf-8"), address)
+                    server.sendto("FIN".encode("utf-8"), address)
                     if len(data) < 1000 and remaining_size % 1000 != 0:
                         break
                 except sc.timeout:
@@ -115,9 +126,9 @@ def main():
                         "File uploaded.".encode("utf-8"),
                         address)
                     server.settimeout(1)
-                    ACK, address = server.recvfrom(1000)
+                    FIN, address = server.recvfrom(1000)
 
-                    if ACK.decode("utf-8") == "ACK":
+                    if FIN.decode("utf-8") == "FIN":
                         break
                 except sc.timeout:
                     print("Did not receive ACK. Terminating.")
@@ -146,11 +157,11 @@ def main():
                 try:
                     server.settimeout(1)
                     server.sendto(
-                        str(os.path.getsize(arguments[1])).encode("utf-8"), address)
+                        ("LEN:" + str(os.path.getsize(arguments[1]))).encode("utf-8"), address)
                     server.settimeout(1)
-                    ACK, address = server.recvfrom(1000)
+                    FIN, address = server.recvfrom(1000)
 
-                    if ACK.decode("utf-8") == "ACK":
+                    if FIN.decode("utf-8") == "FIN":
                         break
                 except sc.timeout:
                     print("Did not receive ACK. Terminating.")
@@ -158,8 +169,11 @@ def main():
             print(f"Sent file data for {arguments[1]}")
             print("Sending file data to the client...")
 
+            size_read = 0
+
             while True:
                 data = file.read(1000)
+                size_read += 1000
                 if data == "" or not data:
                     file.close()
                     break
@@ -167,13 +181,15 @@ def main():
                     server.settimeout(1)
                     server.sendto(data.encode("utf-8"), address)
                     server.settimeout(1)
-                    ACK, address = server.recvfrom(1000)
+                    FIN, address = server.recvfrom(1000)
 
-                    if ACK.decode("utf-8") == "ACK":
+                    if FIN.decode("utf-8") == "FIN":
                         continue
 
                 except sc.timeout:
                     print("Did not receive ACK. Terminating.")
+                    # Will go back 1000 Bytes, to redo operation if socket times out
+                    file.seek(size_read - 1000)
 
             print("Sent file data to the client!")
 
@@ -184,9 +200,9 @@ def main():
                         ("File %s downloaded." %
                          arguments[1]).encode("utf-8"), address)
                     server.settimeout(1)
-                    ACK, address = server.recvfrom(1000)
+                    FIN, address = server.recvfrom(1000)
 
-                    if ACK.decode("utf-8") == "ACK":
+                    if FIN.decode("utf-8") == "FIN":
                         break
                 except sc.timeout:
                     print("Did not receive ACK. Terminating.")
@@ -231,9 +247,9 @@ def main():
                     server.sendto(("File %s anonymized. Output file is %s" %
                                    (old_name, new_name)).encode("utf-8"), address)
                     server.settimeout(1)
-                    ACK, address = server.recvfrom(1000)
+                    FIN, address = server.recvfrom(1000)
 
-                    if ACK.decode("utf-8") == "ACK":
+                    if FIN.decode("utf-8") == "FIN":
                         break
                 except sc.timeout or file.errors:
                     print("Did not receive ACK. Terminating.")
