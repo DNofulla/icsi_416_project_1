@@ -94,13 +94,13 @@ def main():
             print(f"Client uploading file {arguments[1]}...")
             file = open(arguments[1], "w+")
             server.send("Received the filename!".encode("utf-8"))
-            size = server.recv(1024).decode("utf-8")
+            size = int(server.recv(1024).decode("utf-8"))
             print(f"Receiving the file data...")
             while size:
                 data = server.recv(1000)
                 data = data.decode("utf-8")
                 file.write(data)
-                if len(data) < 1000 and size % 1000 != 0:
+                if len(data) < 1000:
                     break
             file.close()
             print(f"Received and Wrote file data for {arguments[1]}")
