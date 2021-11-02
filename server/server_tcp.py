@@ -94,13 +94,14 @@ def main():
             print(f"Client uploading file {arguments[1]}...")
             file = open(arguments[1], "w+")
             server.send("Received the filename and size!".encode("utf-8"))
-
+            size = server.recv(1024).decode("utf-8")
             print(f"Receiving the file data...")
-            data = server.recv(int(arguments[2])).decode("utf-8")
+            data = server.recv(int(size)).decode("utf-8")
             file.write(data)
+            file.close()
             print(f"Received and Wrote file data for {arguments[1]}")
             server.send("File uploaded.".encode("utf-8"))
-            file.close()
+            print(str(os.path.getsize(arguments[1])))
 
         elif arguments[0].upper() == "GET":
 

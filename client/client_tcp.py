@@ -28,10 +28,10 @@ This function runs the python program!
 def main():
     """Client starts and Connects to a server
 
-    To run this TCP Client, make sure to use python3 and 
+    To run this TCP Client, make sure to use python3 and
     run it like this:
 
-    python3 client_tcp.py <server_ip_address> <port> 
+    python3 client_tcp.py <server_ip_address> <port>
     """
 
     client = sc.socket(sc.AF_INET, sc.SOCK_STREAM)
@@ -45,7 +45,7 @@ def main():
 
         """Client Receives input from the user
 
-        The client receives input from the user. 
+        The client receives input from the user.
         The client receives up to 1024 bytes of input. The client
         then converts that input to an argument array, for easy
         access to each argument in the user input.
@@ -65,7 +65,7 @@ def main():
             When the put command is received, the client sends
             a message to the server with the user input and the size
             of the file to be uploaded. The client then receives a message
-            from the server confirming the data was received and then the 
+            from the server confirming the data was received and then the
             client then sends the data of the file to be uploaded. Finally,
             the client receives a final response from the server saying the
             file has been uploaded.
@@ -73,15 +73,20 @@ def main():
 
             file = open(arguments[1], "r")
             data = file.read()
-            client.send(
-                (user_input + " " + str(os.path.getsize(arguments[1]))).encode("utf-8"))
+            file.close()
+
+            print(str(os.path.getsize(arguments[1])))
+
+            client.send((user_input).encode("utf-8"))
+
+            client.send((str(os.path.getsize(arguments[1]))).encode("utf-8"))
+
             message = client.recv(1024).decode("utf-8")
             client.send(data.encode("utf-8"))
 
             print("Awaiting server response.")
             message = client.recv(1024).decode("utf-8")
             print(f"Server response: {message}")
-            file.close()
 
         elif arguments[0].upper() == "GET":
 
@@ -93,7 +98,7 @@ def main():
 
             The client first sends the user input to the server.
             Then the client proceeds to receive the size of the file
-            to be downloaded and the file data of the file to be 
+            to be downloaded and the file data of the file to be
             downloaded. Them the client copies the data to a new file.
             Finally the client receives a response from the server saying
             that the file has been downloaded.
@@ -139,7 +144,7 @@ def main():
 
             The client simply sends the QUIT command to the server and
             then closes the socket and prints out that its disconnecting
-            from the server, and then we set the loop flag to false so 
+            from the server, and then we set the loop flag to false so
             that the loop quits.
             """
 
