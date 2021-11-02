@@ -76,10 +76,9 @@ def main():
             client.send((str(os.path.getsize(arguments[1]))).encode("utf-8"))
 
             message = client.recv(1024).decode("utf-8")
-            
 
             while True:
-                data = file.read(1024)
+                data = file.read(1000)
                 if data == "" or not data:
                     file.close()
                     break
