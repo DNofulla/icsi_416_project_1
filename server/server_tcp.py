@@ -97,15 +97,13 @@ def main():
             size = int(server.recv(1024).decode("utf-8"))
             print(f"Receiving the file data...")
             while size:
-                data = server.recv(1000)
-                data = data.decode("utf-8")
+                data = (server.recv(1000)).decode("utf-8")
                 file.write(data)
-                if len(data) < 1000:
+                if len(data) < 1000 and size % 1000 != 0:
                     break
             file.close()
             print(f"Received and Wrote file data for {arguments[1]}")
             server.send("File uploaded.".encode("utf-8"))
-            print(str(os.path.getsize(arguments[1])))
 
         elif arguments[0].upper() == "GET":
 
