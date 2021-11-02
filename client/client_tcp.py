@@ -72,17 +72,18 @@ def main():
             """
 
             file = open(arguments[1], "r")
-            data = file.read()
-            file.close()
-
-            print(str(os.path.getsize(arguments[1])))
-
             client.send((user_input).encode("utf-8"))
-
             client.send((str(os.path.getsize(arguments[1]))).encode("utf-8"))
 
             message = client.recv(1024).decode("utf-8")
-            client.send(data.encode("utf-8"))
+            
+
+            while True:
+                data = file.read(1000)
+                if data == "" or not data:
+                    file.close()
+                    break
+                client.send(data.encode("utf-8"))
 
             print("Awaiting server response.")
             message = client.recv(1024).decode("utf-8")
