@@ -84,9 +84,7 @@ def main():
             When the put command is received, the server sends
             a response to the client that it received the file name
             and size (from the command arguments). Then the server proceeds
-            to receive the file data with with a buffer the size that was
-            collected from the command arguments (it is attached as the third
-            argument as arguments[2]). After the server receives the data, it
+            to receive the file data with with a buffer the size. After the server receives the data, it
             writes the data to the file, successfully completing the upload.
             The server then lets the client know that the file was uploaded.
             """
