@@ -79,7 +79,7 @@ def main():
             
 
             while True:
-                data = file.read(1000)
+                data = file.read(1024)
                 if data == "" or not data:
                     file.close()
                     break

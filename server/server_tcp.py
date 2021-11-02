@@ -97,9 +97,9 @@ def main():
             size = int(server.recv(1024).decode("utf-8"))
             print(f"Receiving the file data...")
             while size:
-                data = (server.recv(1000)).decode("utf-8")
+                data = (server.recv(1024)).decode("utf-8")
                 file.write(data)
-                if len(data) < 1000 and size % 1000 != 0:
+                if len(data) < 1024 and size % 1024 != 0:
                     break
             file.close()
             print(f"Received and Wrote file data for {arguments[1]}")
@@ -164,7 +164,7 @@ def main():
             print("Anonymizing and Writing file...")
 
             new_file.write(file.read().replace(
-                arguments[1], "X" * len(arguments[1])))
+                str(arguments[1]), "X" * len(arguments[1])))
 
             file.close()
             new_file.close()
