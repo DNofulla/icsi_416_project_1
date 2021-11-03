@@ -50,6 +50,7 @@ def main():
         socket will be initialized and will listen and wait to accept 
         clients.
         """
+        server.settimeout(None)
 
         if server == None or address == None:
             print("Server is starting...")
@@ -59,7 +60,6 @@ def main():
             print("Server is listening...")
             server, address = server.accept()
             print(f"Client {address} connected!")
-            server.settimeout(10000)
 
         """Server Receives input from the Client
 
@@ -96,7 +96,6 @@ def main():
             size = int(server.recv(1024).decode("utf-8"))
             print(f"Receiving the file data...")
             while size:
-                server.settimeout(1)
                 data = server.recv(1000)
                 data = data.decode("utf-8")
                 file.write(data)
