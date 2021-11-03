@@ -96,18 +96,14 @@ def main():
             print(f"Receiving the file data...")
             server.send("Confirm".encode("utf-8"))
 
-            data = server.recv(size).decode("utf-8")
-            file.write(data)
-            server.send("Confirm".encode("utf-8"))
+            while size:
+                data = server.recv(1000)
+                data = data.decode("utf-8")
+                file.write(data)
+                server.send("Confirm".encode("utf-8"))
 
-            # while size:
-            #     data = server.recv(1000)
-            #     data = data.decode("utf-8")
-            #     file.write(data)
-            #     server.send("Confirm".encode("utf-8"))
-
-            #     if len(data) < 1000 and size % 1000 != 0:
-            #         break
+                if len(data) < 1000 and size % 1000 != 0:
+                    break
 
             server.recv(1024).decode("utf-8")
 
