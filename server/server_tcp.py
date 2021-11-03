@@ -50,7 +50,6 @@ def main():
         socket will be initialized and will listen and wait to accept 
         clients.
         """
-        server.settimeout(None)
 
         if server == None or address == None:
             print("Server is starting...")
@@ -60,6 +59,7 @@ def main():
             print("Server is listening...")
             server, address = server.accept()
             print(f"Client {address} connected!")
+            server.settimeout(None)
 
         """Server Receives input from the Client
 
