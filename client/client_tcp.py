@@ -87,24 +87,30 @@ def main():
             file has been uploaded.
             """
 
-            file = open(arguments[1], "r")
+            if len(arguments) != 2:
+                print("Incorrect number of arguments")
+                print("How to execute a PUT command:")
+                print("PUT <file_name>")
+            else:
+                file = open(arguments[1], "r")
 
-            client.send((str(os.path.getsize(arguments[1]))).encode("utf-8"))
-            client.recv(1024).decode("utf-8")
+                client.send(
+                    (str(os.path.getsize(arguments[1]))).encode("utf-8"))
+                client.recv(1024).decode("utf-8")
 
-            while True:
-                data = file.read(1000)
-                if data == "" or not data:
-                    file.close()
-                    break
-                client.send(data.encode("utf-8"))
-                client.recv(1000).decode("utf-8")
+                while True:
+                    data = file.read(1000)
+                    if data == "" or not data:
+                        file.close()
+                        break
+                    client.send(data.encode("utf-8"))
+                    client.recv(1000).decode("utf-8")
 
-            client.send("Confirm".encode("utf-8"))
+                client.send("Confirm".encode("utf-8"))
 
-            print("Awaiting server response.")
-            message = client.recv(1024).decode("utf-8")
-            print(f"Server response: {message}")
+                print("Awaiting server response.")
+                message = client.recv(1024).decode("utf-8")
+                print(f"Server response: {message}")
 
         elif arguments[0].upper() == "GET":
 
@@ -122,17 +128,22 @@ def main():
             that the file has been downloaded.
             """
 
-            file = open(arguments[1], "w+")
-            client.send("Confirm".encode("utf-8"))
-            size = client.recv(1024).decode("utf-8")
-            client.send("Confirm".encode("utf-8"))
-            data = client.recv(int(size)).decode("utf-8")
-            file.write(data)
-            client.send("Confirm".encode("utf-8"))
-            response = client.recv(1024).decode("utf-8")
-            client.send("Confirm".encode("utf-8"))
-            print(f"{response}")
-            file.close()
+            if len(arguments) != 2:
+                print("Incorrect number of arguments")
+                print("How to execute a GET command:")
+                print("GET <file_name>")
+            else:
+                file = open(arguments[1], "w+")
+                client.send("Confirm".encode("utf-8"))
+                size = client.recv(1024).decode("utf-8")
+                client.send("Confirm".encode("utf-8"))
+                data = client.recv(int(size)).decode("utf-8")
+                file.write(data)
+                client.send("Confirm".encode("utf-8"))
+                response = client.recv(1024).decode("utf-8")
+                client.send("Confirm".encode("utf-8"))
+                print(f"{response}")
+                file.close()
 
         elif arguments[0].upper() == "KEYWORD":
 
@@ -149,10 +160,15 @@ def main():
             new anonymized file's name in the same message.
             """
 
-            print("Awaiting server response.")
-            client.send("Confirm".encode("utf-8"))
-            message = client.recv(1024).decode("utf-8")
-            print(f"Server response: {message}!")
+            if len(arguments) != 3:
+                print("Incorrect number of arguments")
+                print("How to execute a KEYWORD command:")
+                print("KEYWORD <keyword> <file_name>")
+            else:
+                print("Awaiting server response.")
+                client.send("Confirm".encode("utf-8"))
+                message = client.recv(1024).decode("utf-8")
+                print(f"Server response: {message}!")
 
         elif arguments[0].upper() == "QUIT":
 
@@ -168,9 +184,14 @@ def main():
             that the loop quits.
             """
 
-            client.close()
-            print(f"Exiting program!")
-            flag = False
+            if len(arguments) != 1:
+                print("Incorrect number of arguments")
+                print("How to execute a QUIT command:")
+                print("QUIT")
+            else:
+                client.close()
+                print(f"Exiting program!")
+                flag = False
 
         else:
 
@@ -181,7 +202,7 @@ def main():
             go to the next request iteration in the loop.
             """
 
-            print("ERROR: COMAND {arguments[0]} DOES NOT EXIST")
+            print(f"{arguments[0]}")
 
 
 if __name__ == "__main__":

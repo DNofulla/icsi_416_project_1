@@ -82,8 +82,6 @@ def main():
         client_input = server.recv(1024).decode("utf-8")
         print(f"Client entered command: {client_input}")
         arguments = client_input.split()
-        print(client_input)
-        print(arguments)
         server.send("Confirm".encode("utf-8"))
 
         if len(arguments) > 3 or len(arguments < 1):
@@ -105,26 +103,31 @@ def main():
             The server then lets the client know that the file was uploaded.
             """
 
-            print(f"Client uploading file {arguments[1]}...")
-            file = open(arguments[1], "w+")
-            size = int(server.recv(1024).decode("utf-8"))
-            print(f"Receiving the file data...")
-            server.send("Confirm".encode("utf-8"))
-
-            while size:
-                data = server.recv(1000)
-                data = data.decode("utf-8")
-                file.write(data)
+            if len(arguments) != 2:
+                print("Incorrect number of arguments")
+                print("How to execute a PUT command:")
+                print("PUT <file_name>")
+            else:
+                print(f"Client uploading file {arguments[1]}...")
+                file = open(arguments[1], "w+")
+                size = int(server.recv(1024).decode("utf-8"))
+                print(f"Receiving the file data...")
                 server.send("Confirm".encode("utf-8"))
 
-                if len(data) < 1000 and size % 1000 != 0:
-                    break
+                while size:
+                    data = server.recv(1000)
+                    data = data.decode("utf-8")
+                    file.write(data)
+                    server.send("Confirm".encode("utf-8"))
 
-            server.recv(1024).decode("utf-8")
+                    if len(data) < 1000 and size % 1000 != 0:
+                        break
 
-            file.close()
-            print(f"Received and Wrote file data for {arguments[1]}")
-            server.send("File uploaded.".encode("utf-8"))
+                server.recv(1024).decode("utf-8")
+
+                file.close()
+                print(f"Received and Wrote file data for {arguments[1]}")
+                server.send("File uploaded.".encode("utf-8"))
 
         elif arguments[0].upper() == "GET":
 
@@ -141,24 +144,29 @@ def main():
             has been downloaded.
             """
 
-            print(f"Client downloading file {arguments[1]}...")
-            file = open(arguments[1], "r")
-            server.recv(1024).decode("utf-8")
-            print("Sending file size to the client...")
-            server.send(str(os.path.getsize(arguments[1])).encode("utf-8"))
-            print(f"Sent file data for {arguments[1]}")
-            server.recv(1024).decode("utf-8")
-            data = file.read()
-            print("Sending file data to the client...")
-            server.send(data.encode("utf-8"))
-            server.recv(1024).decode("utf-8")
-            print("Sent file data to the client!")
+            if len(arguments) != 2:
+                print("Incorrect number of arguments")
+                print("How to execute a GET command:")
+                print("GET <file_name>")
+            else:
+                print(f"Client downloading file {arguments[1]}...")
+                file = open(arguments[1], "r")
+                server.recv(1024).decode("utf-8")
+                print("Sending file size to the client...")
+                server.send(str(os.path.getsize(arguments[1])).encode("utf-8"))
+                print(f"Sent file data for {arguments[1]}")
+                server.recv(1024).decode("utf-8")
+                data = file.read()
+                print("Sending file data to the client...")
+                server.send(data.encode("utf-8"))
+                server.recv(1024).decode("utf-8")
+                print("Sent file data to the client!")
 
-            file.close()
+                file.close()
 
-            server.send(("File %s downloaded." %
-                        arguments[1]).encode("utf-8"))
-            server.recv(1024).decode("utf-8")
+                server.send(("File %s downloaded." %
+                            arguments[1]).encode("utf-8"))
+                server.recv(1024).decode("utf-8")
 
         elif arguments[0].upper() == "KEYWORD":
 
@@ -176,26 +184,31 @@ def main():
             For example, the word 'Project' would turn into 'XXXXXXX'.
             """
 
-            print(
-                f"Client anonymizing file {arguments[2]} with keyword {arguments[1]}...")
+            if len(arguments) != 3:
+                print("Incorrect number of arguments")
+                print("How to execute a KEYWORD command:")
+                print("KEYWORD <keyword> <file_name>")
+            else:
+                print(
+                    f"Client anonymizing file {arguments[2]} with keyword {arguments[1]}...")
 
-            old_name = arguments[2]
-            print("Opening files...")
-            file = open(arguments[2], "r")
-            new_name = arguments[2].replace(".txt", "_anon.txt")
-            new_file = open(new_name, "w+")
-            print("Anonymizing and Writing file...")
+                old_name = arguments[2]
+                print("Opening files...")
+                file = open(arguments[2], "r")
+                new_name = arguments[2].replace(".txt", "_anon.txt")
+                new_file = open(new_name, "w+")
+                print("Anonymizing and Writing file...")
 
-            new_file.write(re.compile(re.escape(arguments[1]), re.IGNORECASE).sub(
-                "X" * len(arguments[1]), file.read()))
+                new_file.write(re.compile(re.escape(arguments[1]), re.IGNORECASE).sub(
+                    "X" * len(arguments[1]), file.read()))
 
-            file.close()
-            new_file.close()
-            server.recv(1024).decode("utf-8")
-            print(
-                f"File {old_name} anonymized. Output file is {new_name}!")
-            server.send(("File %s anonymized. Output file is %s" %
-                        (old_name, new_name)).encode("utf-8"))
+                file.close()
+                new_file.close()
+                server.recv(1024).decode("utf-8")
+                print(
+                    f"File {old_name} anonymized. Output file is {new_name}!")
+                server.send(("File %s anonymized. Output file is %s" %
+                            (old_name, new_name)).encode("utf-8"))
 
         elif arguments[0].upper() == "QUIT":
 
@@ -207,10 +220,16 @@ def main():
 
             The server simply prints out that the client has disconnected.
             """
-            print(f"Client {address} disconnected from the server!")
-            address = None
-            server.close()
-            server = None
+
+            if len(arguments) != 1:
+                print("Incorrect number of arguments")
+                print("How to execute a QUIT command:")
+                print("QUIT")
+            else:
+                print(f"Client {address} disconnected from the server!")
+                address = None
+                server.close()
+                server = None
 
         else:
 
@@ -221,7 +240,7 @@ def main():
             go to the next request iteration in the loop.
             """
 
-            print(f"ERROR: COMAND {arguments[1]} DOES NOT EXIST")
+            print(f"{arguments[0]}")
 
 
 if __name__ == "__main__":

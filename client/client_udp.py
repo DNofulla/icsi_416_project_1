@@ -95,70 +95,75 @@ def main():
             file has been uploaded.
             """
 
-            file = open(arguments[1], "r")
+            if len(arguments) != 2:
+                print("Incorrect number of arguments")
+                print("How to execute a PUT command:")
+                print("PUT <file_name>")
+            else:
+                file = open(arguments[1], "r")
 
-            while True:
-                try:
-                    client.settimeout(1)
-                    client.sendto(
-                        (user_input).encode("utf-8"), (argv[1], int(argv[2])))
-                    client.settimeout(1)
-                    FIN, address = client.recvfrom(1000)
+                while True:
+                    try:
+                        client.settimeout(1)
+                        client.sendto(
+                            (user_input).encode("utf-8"), (argv[1], int(argv[2])))
+                        client.settimeout(1)
+                        FIN, address = client.recvfrom(1000)
 
-                    if FIN.decode("utf-8") == "FIN":
+                        if FIN.decode("utf-8") == "FIN":
+                            break
+                    except sc.timeout:
+                        print("Did not receive ACK. Terminating.")
+
+                while True:
+                    try:
+                        client.settimeout(1)
+                        client.sendto(
+                            ("LEN:" + str(os.path.getsize(arguments[1]))).encode("utf-8"), address)
+                        client.settimeout(1)
+                        FIN, address = client.recvfrom(1000)
+
+                        if FIN.decode("utf-8") == "FIN":
+                            break
+                    except sc.timeout:
+                        print("Did not receive ACK. Terminating.")
+
+                size_read = 0
+
+                while True:
+                    data = file.read(1000)
+                    size_read += 1000
+                    if data == "" or not data:
+                        file.close()
                         break
-                except sc.timeout:
-                    print("Did not receive ACK. Terminating.")
+                    try:
+                        client.settimeout(1)
+                        client.sendto(data.encode("utf-8"), address)
+                        client.settimeout(1)
+                        FIN, address = client.recvfrom(1000)
 
-            while True:
-                try:
-                    client.settimeout(1)
-                    client.sendto(
-                        ("LEN:" + str(os.path.getsize(arguments[1]))).encode("utf-8"), address)
-                    client.settimeout(1)
-                    FIN, address = client.recvfrom(1000)
+                        if FIN.decode("utf-8") == "FIN":
+                            continue
 
-                    if FIN.decode("utf-8") == "FIN":
+                    except sc.timeout:
+                        print("Did not receive ACK. Terminating.")
+                        # Will go back 1000 Bytes, to redo operation if socket times out
+                        file.seek(size_read - 1000)
+
+                print("Awaiting server response.")
+
+                while True:
+                    try:
+                        client.settimeout(1)
+                        msg, address = client.recvfrom(1000)
+                        client.settimeout(1)
+                        client.sendto("FIN".encode("utf-8"), address)
                         break
-                except sc.timeout:
-                    print("Did not receive ACK. Terminating.")
+                    except sc.timeout:
+                        print("Data transmission terminated prematurely.")
 
-            size_read = 0
-
-            while True:
-                data = file.read(1000)
-                size_read += 1000
-                if data == "" or not data:
-                    file.close()
-                    break
-                try:
-                    client.settimeout(1)
-                    client.sendto(data.encode("utf-8"), address)
-                    client.settimeout(1)
-                    FIN, address = client.recvfrom(1000)
-
-                    if FIN.decode("utf-8") == "FIN":
-                        continue
-
-                except sc.timeout:
-                    print("Did not receive ACK. Terminating.")
-                    # Will go back 1000 Bytes, to redo operation if socket times out
-                    file.seek(size_read - 1000)
-
-            print("Awaiting server response.")
-
-            while True:
-                try:
-                    client.settimeout(1)
-                    msg, address = client.recvfrom(1000)
-                    client.settimeout(1)
-                    client.sendto("FIN".encode("utf-8"), address)
-                    break
-                except sc.timeout:
-                    print("Data transmission terminated prematurely.")
-
-            msg = msg.decode("utf-8")
-            print(f"Server response: {msg}")
+                msg = msg.decode("utf-8")
+                print(f"Server response: {msg}")
 
         elif arguments[0].upper() == "GET":
 
@@ -176,60 +181,66 @@ def main():
             that the file has been downloaded.
             """
 
-            file = open(arguments[1], "w+")
+            if len(arguments) != 2:
+                print("Incorrect number of arguments")
+                print("How to execute a GET command:")
+                print("GET <file_name>")
+            else:
 
-            while True:
-                try:
-                    client.settimeout(1)
-                    client.sendto(user_input.encode("utf-8"),
-                                  (argv[1], int(argv[2])))
-                    client.settimeout(1)
-                    FIN, address = client.recvfrom(1000)
+                file = open(arguments[1], "w+")
 
-                    if FIN.decode("utf-8") == "FIN":
+                while True:
+                    try:
+                        client.settimeout(1)
+                        client.sendto(user_input.encode("utf-8"),
+                                      (argv[1], int(argv[2])))
+                        client.settimeout(1)
+                        FIN, address = client.recvfrom(1000)
+
+                        if FIN.decode("utf-8") == "FIN":
+                            break
+                    except sc.timeout or file.errors:
+                        print("Did not receive ACK. Terminating.")
+
+                while True:
+                    try:
+                        client.settimeout(1)
+                        size, address = client.recvfrom(1000)
+                        client.settimeout(1)
+                        client.sendto("FIN".encode("utf-8"), address)
                         break
-                except sc.timeout or file.errors:
-                    print("Did not receive ACK. Terminating.")
+                    except sc.timeout:
+                        print("Did not receive data. Terminating.")
 
-            while True:
-                try:
-                    client.settimeout(1)
-                    size, address = client.recvfrom(1000)
-                    client.settimeout(1)
-                    client.sendto("FIN".encode("utf-8"), address)
-                    break
-                except sc.timeout:
-                    print("Did not receive data. Terminating.")
+                size = int((size.decode("utf-8")).split(':')[1])
 
-            size = int((size.decode("utf-8")).split(':')[1])
+                while size:
+                    try:
+                        client.settimeout(1)
+                        data, address = client.recvfrom(1000)
+                        data = data.decode("utf-8")
+                        file.write(data)
+                        client.settimeout(1)
+                        client.sendto("FIN".encode("utf-8"), address)
+                        if len(data) < 1000 and size % 1000 != 0:
+                            break
+                    except sc.timeout:
+                        print("Data transmission terminated prematurely.")
 
-            while size:
-                try:
-                    client.settimeout(1)
-                    data, address = client.recvfrom(1000)
-                    data = data.decode("utf-8")
-                    file.write(data)
-                    client.settimeout(1)
-                    client.sendto("FIN".encode("utf-8"), address)
-                    if len(data) < 1000 and size % 1000 != 0:
+                while True:
+                    try:
+                        client.settimeout(1)
+                        msg, address = client.recvfrom(1000)
+                        client.settimeout(1)
+                        client.sendto("FIN".encode("utf-8"), address)
                         break
-                except sc.timeout:
-                    print("Data transmission terminated prematurely.")
+                    except sc.timeout:
+                        print("Did not receive data. Terminating.")
 
-            while True:
-                try:
-                    client.settimeout(1)
-                    msg, address = client.recvfrom(1000)
-                    client.settimeout(1)
-                    client.sendto("FIN".encode("utf-8"), address)
-                    break
-                except sc.timeout:
-                    print("Did not receive data. Terminating.")
+                msg = msg.decode("utf-8")
+                print(f"{msg}")
 
-            msg = msg.decode("utf-8")
-            print(f"{msg}")
-
-            file.close()
+                file.close()
 
         elif arguments[0].upper() == "KEYWORD":
 
@@ -246,33 +257,38 @@ def main():
             new anonymized file's name in the same message.
             """
 
-            while True:
-                try:
-                    client.settimeout(1)
-                    client.sendto(user_input.encode("utf-8"),
-                                  (argv[1], int(argv[2])))
-                    client.settimeout(1)
-                    FIN, address = client.recvfrom(1000)
+            if len(arguments) != 3:
+                print("Incorrect number of arguments")
+                print("How to execute a KEYWORD command:")
+                print("KEYWORD <keyword> <file_name>")
+            else:
+                while True:
+                    try:
+                        client.settimeout(1)
+                        client.sendto(user_input.encode("utf-8"),
+                                      (argv[1], int(argv[2])))
+                        client.settimeout(1)
+                        FIN, address = client.recvfrom(1000)
 
-                    if FIN.decode("utf-8") == "FIN":
+                        if FIN.decode("utf-8") == "FIN":
+                            break
+                    except sc.timeout or file.errors:
+                        print("Did not receive ACK. Terminating.")
+
+                print("Awaiting server response.")
+
+                while True:
+                    try:
+                        client.settimeout(1)
+                        msg, address = client.recvfrom(1000)
+                        client.settimeout(1)
+                        client.sendto("FIN".encode("utf-8"), address)
                         break
-                except sc.timeout or file.errors:
-                    print("Did not receive ACK. Terminating.")
+                    except sc.timeout:
+                        print("Did not receive data. Terminating.")
 
-            print("Awaiting server response.")
-
-            while True:
-                try:
-                    client.settimeout(1)
-                    msg, address = client.recvfrom(1000)
-                    client.settimeout(1)
-                    client.sendto("FIN".encode("utf-8"), address)
-                    break
-                except sc.timeout:
-                    print("Did not receive data. Terminating.")
-
-            msg = msg.decode("utf-8")
-            print(f"Server response: {msg}!")
+                msg = msg.decode("utf-8")
+                print(f"Server response: {msg}!")
 
         elif arguments[0].upper() == "QUIT":
 
@@ -288,22 +304,27 @@ def main():
             that the loop quits.
             """
 
-            while True:
-                try:
-                    client.settimeout(1)
-                    client.sendto(user_input.encode("utf-8"),
-                                  (argv[1], int(argv[2])))
-                    client.settimeout(1)
-                    FIN, address = client.recvfrom(1000)
+            if len(arguments) != 1:
+                print("Incorrect number of arguments")
+                print("How to execute a QUIT command:")
+                print("QUIT")
+            else:
+                while True:
+                    try:
+                        client.settimeout(1)
+                        client.sendto(user_input.encode("utf-8"),
+                                      (argv[1], int(argv[2])))
+                        client.settimeout(1)
+                        FIN, address = client.recvfrom(1000)
 
-                    if FIN.decode("utf-8") == "FIN":
-                        break
-                except sc.timeout or file.errors:
-                    print("Did not receive ACK. Terminating.")
+                        if FIN.decode("utf-8") == "FIN":
+                            break
+                    except sc.timeout or file.errors:
+                        print("Did not receive ACK. Terminating.")
 
-            client.close()
-            print(f"Exiting program!")
-            flag = False
+                client.close()
+                print(f"Exiting program!")
+                flag = False
 
         else:
 
@@ -314,7 +335,7 @@ def main():
             go to the next request iteration in the loop.
             """
 
-            print(f"ERROR: COMAND {arguments[0]} DOES NOT EXIST")
+            print(f"{arguments[0]}")
 
 
 if __name__ == "__main__":

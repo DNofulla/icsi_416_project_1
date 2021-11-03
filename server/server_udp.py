@@ -111,54 +111,59 @@ def main():
             The server then lets the client know that the file was uploaded.
             """
 
-            print(f"Client uploading file {arguments[1]}...")
-            file = open(arguments[1], "w+")
+            if len(arguments) != 2:
+                print("Incorrect number of arguments")
+                print("How to execute a PUT command:")
+                print("PUT <file_name>")
+            else:
+                print(f"Client uploading file {arguments[1]}...")
+                file = open(arguments[1], "w+")
 
-            while True:
-                try:
-                    server.settimeout(1)
-                    remaining_size, address = server.recvfrom(1000)
-                    server.settimeout(1)
-                    server.sendto("FIN".encode("utf-8"), address)
-                    break
-                except sc.timeout:
-                    print("Data transmission terminated prematurely.")
-
-            remaining_size = int(
-                (remaining_size.decode("utf-8")).split(':')[1])
-
-            print(f"Receiving the file data...")
-
-            while remaining_size:
-                try:
-                    server.settimeout(1)
-                    data, address = server.recvfrom(1000)
-                    data = data.decode("utf-8")
-                    file.write(data)
-                    server.settimeout(1)
-                    server.sendto("FIN".encode("utf-8"), address)
-                    if len(data) < 1000 and remaining_size % 1000 != 0:
+                while True:
+                    try:
+                        server.settimeout(1)
+                        remaining_size, address = server.recvfrom(1000)
+                        server.settimeout(1)
+                        server.sendto("FIN".encode("utf-8"), address)
                         break
-                except sc.timeout:
-                    print("Data transmission terminated prematurely.")
+                    except sc.timeout:
+                        print("Data transmission terminated prematurely.")
 
-            print(f"Received and Wrote file data for {arguments[1]}")
-            print(f"Data written to file {arguments[1]}")
-            file.close()
+                remaining_size = int(
+                    (remaining_size.decode("utf-8")).split(':')[1])
 
-            while True:
-                try:
-                    server.settimeout(1)
-                    server.sendto(
-                        "File uploaded.".encode("utf-8"),
-                        address)
-                    server.settimeout(1)
-                    FIN, address = server.recvfrom(1000)
+                print(f"Receiving the file data...")
 
-                    if FIN.decode("utf-8") == "FIN":
-                        break
-                except sc.timeout:
-                    print("Did not receive ACK. Terminating.")
+                while remaining_size:
+                    try:
+                        server.settimeout(1)
+                        data, address = server.recvfrom(1000)
+                        data = data.decode("utf-8")
+                        file.write(data)
+                        server.settimeout(1)
+                        server.sendto("FIN".encode("utf-8"), address)
+                        if len(data) < 1000 and remaining_size % 1000 != 0:
+                            break
+                    except sc.timeout:
+                        print("Data transmission terminated prematurely.")
+
+                print(f"Received and Wrote file data for {arguments[1]}")
+                print(f"Data written to file {arguments[1]}")
+                file.close()
+
+                while True:
+                    try:
+                        server.settimeout(1)
+                        server.sendto(
+                            "File uploaded.".encode("utf-8"),
+                            address)
+                        server.settimeout(1)
+                        FIN, address = server.recvfrom(1000)
+
+                        if FIN.decode("utf-8") == "FIN":
+                            break
+                    except sc.timeout:
+                        print("Did not receive ACK. Terminating.")
 
         elif arguments[0].upper() == "GET":
 
@@ -175,64 +180,69 @@ def main():
             has been downloaded.
             """
 
-            print(f"Client downloading file {arguments[1]}...")
-            file = open(arguments[1], "r")
+            if len(arguments) != 2:
+                print("Incorrect number of arguments")
+                print("How to execute a GET command:")
+                print("GET <file_name>")
+            else:
+                print(f"Client downloading file {arguments[1]}...")
+                file = open(arguments[1], "r")
 
-            print("Sending file size to the client...")
+                print("Sending file size to the client...")
 
-            while True:
-                try:
-                    server.settimeout(1)
-                    server.sendto(
-                        ("LEN:" + str(os.path.getsize(arguments[1]))).encode("utf-8"), address)
-                    server.settimeout(1)
-                    FIN, address = server.recvfrom(1000)
+                while True:
+                    try:
+                        server.settimeout(1)
+                        server.sendto(
+                            ("LEN:" + str(os.path.getsize(arguments[1]))).encode("utf-8"), address)
+                        server.settimeout(1)
+                        FIN, address = server.recvfrom(1000)
 
-                    if FIN.decode("utf-8") == "FIN":
+                        if FIN.decode("utf-8") == "FIN":
+                            break
+                    except sc.timeout:
+                        print("Did not receive ACK. Terminating.")
+
+                print(f"Sent file data for {arguments[1]}")
+                print("Sending file data to the client...")
+
+                size_read = 0
+
+                while True:
+                    data = file.read(1000)
+                    size_read += 1000
+                    if data == "" or not data:
+                        file.close()
                         break
-                except sc.timeout:
-                    print("Did not receive ACK. Terminating.")
+                    try:
+                        server.settimeout(1)
+                        server.sendto(data.encode("utf-8"), address)
+                        server.settimeout(1)
+                        FIN, address = server.recvfrom(1000)
 
-            print(f"Sent file data for {arguments[1]}")
-            print("Sending file data to the client...")
+                        if FIN.decode("utf-8") == "FIN":
+                            continue
 
-            size_read = 0
+                    except sc.timeout:
+                        print("Did not receive ACK. Terminating.")
+                        # Will go back 1000 Bytes, to redo operation if socket times out
+                        file.seek(size_read - 1000)
 
-            while True:
-                data = file.read(1000)
-                size_read += 1000
-                if data == "" or not data:
-                    file.close()
-                    break
-                try:
-                    server.settimeout(1)
-                    server.sendto(data.encode("utf-8"), address)
-                    server.settimeout(1)
-                    FIN, address = server.recvfrom(1000)
+                print("Sent file data to the client!")
 
-                    if FIN.decode("utf-8") == "FIN":
-                        continue
+                while True:
+                    try:
+                        server.settimeout(1)
+                        server.sendto(
+                            ("File %s downloaded." %
+                             arguments[1]).encode("utf-8"), address)
+                        server.settimeout(1)
+                        FIN, address = server.recvfrom(1000)
 
-                except sc.timeout:
-                    print("Did not receive ACK. Terminating.")
-                    # Will go back 1000 Bytes, to redo operation if socket times out
-                    file.seek(size_read - 1000)
-
-            print("Sent file data to the client!")
-
-            while True:
-                try:
-                    server.settimeout(1)
-                    server.sendto(
-                        ("File %s downloaded." %
-                         arguments[1]).encode("utf-8"), address)
-                    server.settimeout(1)
-                    FIN, address = server.recvfrom(1000)
-
-                    if FIN.decode("utf-8") == "FIN":
-                        break
-                except sc.timeout:
-                    print("Did not receive ACK. Terminating.")
+                        if FIN.decode("utf-8") == "FIN":
+                            break
+                    except sc.timeout:
+                        print("Did not receive ACK. Terminating.")
 
         elif arguments[0].upper() == "KEYWORD":
 
@@ -250,36 +260,42 @@ def main():
             For example, the word 'Project' would turn into 'XXXXXXX'.
             """
 
-            print(
-                f"Client anonymizing file {arguments[2]} with keyword {arguments[1]}...")
+            if len(arguments) != 3:
+                print("Incorrect number of arguments")
+                print("How to execute a KEYWORD command:")
+                print("KEYWORD <keyword> <file_name>")
+            else:
+                print(
+                    f"Client anonymizing file {arguments[2]} with keyword {arguments[1]}...")
 
-            old_name = arguments[2]
-            print("Opening files...")
-            file = open(arguments[2], "r")
-            new_name = arguments[2].replace(".txt", "_anon.txt")
-            new_file = open(new_name, "w+")
-            print("Anonymizing and Writing file...")
+                old_name = arguments[2]
+                print("Opening files...")
+                file = open(arguments[2], "r")
+                new_name = arguments[2].replace(".txt", "_anon.txt")
+                new_file = open(new_name, "w+")
+                print("Anonymizing and Writing file...")
 
-            new_file.write(re.compile(re.escape(arguments[1]), re.IGNORECASE).sub(
-                "X" * len(arguments[1]), file.read()))
+                new_file.write(re.compile(re.escape(arguments[1]), re.IGNORECASE).sub(
+                    "X" * len(arguments[1]), file.read()))
 
-            file.close()
-            new_file.close()
+                file.close()
+                new_file.close()
 
-            print(f"File {old_name} anonymized. Output file is {new_name}!")
+                print(
+                    f"File {old_name} anonymized. Output file is {new_name}!")
 
-            while True:
-                try:
-                    server.settimeout(1)
-                    server.sendto(("File %s anonymized. Output file is %s" %
-                                   (old_name, new_name)).encode("utf-8"), address)
-                    server.settimeout(1)
-                    FIN, address = server.recvfrom(1000)
+                while True:
+                    try:
+                        server.settimeout(1)
+                        server.sendto(("File %s anonymized. Output file is %s" %
+                                       (old_name, new_name)).encode("utf-8"), address)
+                        server.settimeout(1)
+                        FIN, address = server.recvfrom(1000)
 
-                    if FIN.decode("utf-8") == "FIN":
-                        break
-                except sc.timeout or file.errors:
-                    print("Did not receive ACK. Terminating.")
+                        if FIN.decode("utf-8") == "FIN":
+                            break
+                    except sc.timeout or file.errors:
+                        print("Did not receive ACK. Terminating.")
 
         elif arguments[0].upper() == "QUIT":
 
@@ -292,7 +308,12 @@ def main():
             The server simply prints out that the client has disconnected.
             """
 
-            print(f"Client {address} disconnected from the server!")
+            if len(arguments) != 1:
+                print("Incorrect number of arguments")
+                print("How to execute a QUIT command:")
+                print("QUIT")
+            else:
+                print(f"Client {address} disconnected from the server!")
 
         else:
 
@@ -302,7 +323,7 @@ def main():
             These commands will be ignored by the server and just simply
             go to the next request iteration in the loop.
             """
-            print(f"ERROR: COMAND {arguments[0]} DOES NOT EXIST")
+            print(f"{arguments[0]}")
 
 
 if __name__ == "__main__":
