@@ -194,6 +194,7 @@ def main():
             """
             print(f"Client {address} disconnected from the server!")
             address = None
+            server.shutdown()
             server.close()
             server = None
 
