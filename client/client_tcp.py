@@ -38,6 +38,7 @@ def main():
     print("Connecting to Server...")
     client.connect((argv[1], int(argv[2])))
     print(f"Connected to IP: {argv[1]} at Port: {argv[2]}!")
+    client.settimeout(None)
 
     flag = True
 
