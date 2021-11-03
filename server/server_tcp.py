@@ -54,6 +54,7 @@ def main():
         if server == None or address == None:
             print("Server is starting...")
             server = sc.socket(sc.AF_INET, sc.SOCK_STREAM)
+            server.setsockopt(sc.SOL_SOCKET, sc.SO_REUSEADDR, 1)
             server.bind(('', int(argv[1])))
             server.listen()
             print("Server is listening...")
@@ -194,7 +195,6 @@ def main():
             """
             print(f"Client {address} disconnected from the server!")
             address = None
-            server.shutdown()
             server.close()
             server = None
 
