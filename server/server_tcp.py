@@ -59,6 +59,7 @@ def main():
             print("Server is listening...")
             server, address = server.accept()
             print(f"Client {address} connected!")
+            server.settimeout(None)
 
         """Server Receives input from the Client
 
