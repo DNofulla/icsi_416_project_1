@@ -1,6 +1,7 @@
 import socket as sc
 from sys import argv
 import os
+import re
 
 
 # ALL RESOURCES (For the entire assignment)
@@ -172,8 +173,11 @@ def main():
             new_file = open(new_name, "w+")
             print("Anonymizing and Writing file...")
 
-            new_file.write(file.read().replace(
-                str(arguments[1]), "X" * len(arguments[1])))
+            new_file.write(re.compile(re.escape(arguments[1]), re.IGNORECASE).sub(
+                "X" * len(arguments[1]), file.read()))
+
+            # new_file.write(file.read().replace(
+            #     str(arguments[1]), "X" * len(arguments[1])))
 
             file.close()
             new_file.close()
