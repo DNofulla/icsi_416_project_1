@@ -95,6 +95,7 @@ def main():
             size = int(server.recv(1024).decode("utf-8"))
             print(f"Receiving the file data...")
             server.send("Confirm".encode("utf-8"))
+
             while size:
                 data = server.recv(1000)
                 data = data.decode("utf-8")
@@ -103,6 +104,8 @@ def main():
 
                 if len(data) < 1000 and size % 1000 != 0:
                     break
+
+            server.recv(1024).decode("utf-8")
 
             file.close()
             print(f"Received and Wrote file data for {arguments[1]}")
@@ -125,20 +128,22 @@ def main():
 
             print(f"Client downloading file {arguments[1]}...")
             file = open(arguments[1], "r")
-
+            server.recv(1024).decode("utf-8")
             print("Sending file size to the client...")
             server.send(str(os.path.getsize(arguments[1])).encode("utf-8"))
             print(f"Sent file data for {arguments[1]}")
-
+            server.recv(1024).decode("utf-8")
             data = file.read()
             print("Sending file data to the client...")
             server.send(data.encode("utf-8"))
+            server.recv(1024).decode("utf-8")
             print("Sent file data to the client!")
 
             file.close()
 
             server.send(("File %s downloaded." %
                         arguments[1]).encode("utf-8"))
+            server.recv(1024).decode("utf-8")
 
         elif arguments[0].upper() == "KEYWORD":
 
@@ -171,7 +176,7 @@ def main():
 
             file.close()
             new_file.close()
-
+            server.recv(1024).decode("utf-8")
             print(
                 f"File {old_name} anonymized. Output file is {new_name}!")
             server.send(("File %s anonymized. Output file is %s" %

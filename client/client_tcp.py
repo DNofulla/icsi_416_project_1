@@ -42,7 +42,6 @@ def main():
     flag = True
 
     while flag:
-        client.settimeout(None)
 
         """Client Receives input from the user
 
@@ -54,6 +53,8 @@ def main():
 
         user_input = input("Enter a command: ")
         arguments = user_input.split()
+        client.send((user_input).encode("utf-8"))
+        client.recv(1024).decode("utf-8")
 
         if arguments[0].upper() == 'PUT':
 
@@ -73,10 +74,9 @@ def main():
             """
 
             file = open(arguments[1], "r")
-            client.send((user_input).encode("utf-8"))
-            client.send((str(os.path.getsize(arguments[1]))).encode("utf-8"))
 
-            message = client.recv(1024).decode("utf-8")
+            client.send((str(os.path.getsize(arguments[1]))).encode("utf-8"))
+            client.recv(1024).decode("utf-8")
 
             while True:
                 data = file.read(1000)
@@ -84,6 +84,9 @@ def main():
                     file.close()
                     break
                 client.send(data.encode("utf-8"))
+                client.recv(1000).decode("utf-8")
+
+            client.send("Confirm".encode("utf-8"))
 
             print("Awaiting server response.")
             message = client.recv(1024).decode("utf-8")
@@ -106,11 +109,14 @@ def main():
             """
 
             file = open(arguments[1], "w+")
-            client.send(user_input.encode("utf-8"))
+            client.send("Confirm".encode("utf-8"))
             size = client.recv(1024).decode("utf-8")
+            client.send("Confirm".encode("utf-8"))
             data = client.recv(int(size)).decode("utf-8")
             file.write(data)
+            client.send("Confirm".encode("utf-8"))
             response = client.recv(1024).decode("utf-8")
+            client.send("Confirm".encode("utf-8"))
             print(f"{response}")
             file.close()
 
@@ -129,9 +135,8 @@ def main():
             new anonymized file's name in the same message.
             """
 
-            client.send(user_input.encode("utf-8"))
             print("Awaiting server response.")
-
+            client.send("Confirm".encode("utf-8"))
             message = client.recv(1024).decode("utf-8")
             print(f"Server response: {message}!")
 
@@ -149,7 +154,6 @@ def main():
             that the loop quits.
             """
 
-            client.send(arguments[0].encode("utf-8"))
             client.close()
             print(f"Exiting program!")
             flag = False
