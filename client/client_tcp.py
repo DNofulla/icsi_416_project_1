@@ -34,6 +34,7 @@ def main():
             "Number of command line arguments MUST be 3. The python file name, the server's ip address and the port")
         print("Example:")
         print("python3 client_tcp.py <server_ip_address> <port>")
+        exit(1)
 
     """Client starts and Connects to a server
 
@@ -63,8 +64,8 @@ def main():
         user_input = input("Enter a command: ")
         arguments = user_input.split()
 
-        if len(arguments) > 3 or len(arguments < 2):
-            arguments[0] = "COMMAND DOESNT EXIST"
+        if len(arguments) > 3 or len(arguments < 1):
+            arguments[0] = "Invalid number of arguments"
 
         client.send((user_input).encode("utf-8"))
         client.recv(1024).decode("utf-8")

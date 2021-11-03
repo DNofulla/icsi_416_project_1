@@ -37,6 +37,7 @@ def main():
             "Number of command line arguments MUST be 2. The python file name and the port")
         print("Example:")
         print("python3 server_tcp.py <port>")
+        exit(1)
 
     """Server starts and listens for clients
 
@@ -85,8 +86,8 @@ def main():
         print(arguments)
         server.send("Confirm".encode("utf-8"))
 
-        if len(arguments) > 3 or len(arguments < 2):
-            arguments[0] = "COMMAND DOESNT EXIST"
+        if len(arguments) > 3 or len(arguments < 1):
+            arguments[0] = "Invalid number of arguments"
 
         if arguments[0].upper() == 'PUT':
 
