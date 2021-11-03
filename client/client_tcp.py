@@ -11,6 +11,8 @@ from sys import argv
 # https://dev.to/black_strok3/difference-between-udp-and-tcp-example-code-1pg1
 # https://wiki.python.org/moin/UdpCommunication
 # https://github.com/DNofulla/Battleship-Game/blob/master/Battleship4.c  (My own implementation in C for my ICSI 333 class game assignment)
+# https://stackoverflow.com/questions/6380057/python-binding-socket-address-already-in-use
+# https://github.com/nikhilroxtomar/Large-File-Transfer-using-TCP-Socket-in-Python3
 
 
 """client_tcp.py: TCP Implementation of a client socket"""
@@ -26,6 +28,13 @@ This function runs the python program!
 
 
 def main():
+
+    if len(argv) != 3:
+        print(
+            "Number of command line arguments MUST be 3. The python file name, the server's ip address and the port")
+        print("Example:")
+        print("python3 client_tcp.py <server_ip_address> <port>")
+
     """Client starts and Connects to a server
 
     To run this TCP Client, make sure to use python3 and
@@ -53,6 +62,10 @@ def main():
 
         user_input = input("Enter a command: ")
         arguments = user_input.split()
+
+        if len(arguments) > 3 or len(arguments < 2):
+            arguments[0] = "COMMAND DOESNT EXIST"
+
         client.send((user_input).encode("utf-8"))
         client.recv(1024).decode("utf-8")
 

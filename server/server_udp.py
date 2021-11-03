@@ -1,6 +1,7 @@
 import socket as sc
 from sys import argv
 import os
+import re
 
 
 # ALL RESOURCES (For the entire assignment)
@@ -12,6 +13,8 @@ import os
 # https://dev.to/black_strok3/difference-between-udp-and-tcp-example-code-1pg1
 # https://wiki.python.org/moin/UdpCommunication
 # https://github.com/DNofulla/Battleship-Game/blob/master/Battleship4.c  (My own implementation in C for my ICSI 333 class game assignment)
+# https://stackoverflow.com/questions/6380057/python-binding-socket-address-already-in-use
+# https://github.com/nikhilroxtomar/Large-File-Transfer-using-TCP-Socket-in-Python3
 
 
 """server_udp.py: UDP Implementation of a server socket with Stop and Wait Functionality"""
@@ -40,6 +43,13 @@ This function runs the python program!
 
 
 def main():
+
+    if len(argv) != 2:
+        print(
+            "Number of command line arguments MUST be 2. The python file name and the port")
+        print("Example:")
+        print("python3 server_udp.py <port>")
+
     """Server starts and listens for clients
 
     To run this UDP Server, make sure to use python3 and
@@ -78,6 +88,9 @@ def main():
         client_input = client_input.decode("utf-8")
         print(f"Client entered command: {client_input}")
         arguments = client_input.split()
+
+        if len(arguments) > 3 or len(arguments < 2):
+            arguments[0] = "COMMAND DOESNT EXIST"
 
         if arguments[0].upper() == 'PUT':
 
@@ -246,8 +259,8 @@ def main():
             new_file = open(new_name, "w+")
             print("Anonymizing and Writing file...")
 
-            new_file.write(file.read().replace(
-                arguments[1], "X" * len(arguments[1])))
+            new_file.write(re.compile(re.escape(arguments[1]), re.IGNORECASE).sub(
+                "X" * len(arguments[1]), file.read()))
 
             file.close()
             new_file.close()
