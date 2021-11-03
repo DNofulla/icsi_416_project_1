@@ -59,7 +59,6 @@ def main():
             print("Server is listening...")
             server, address = server.accept()
             print(f"Client {address} connected!")
-            server.settimeout(None)
 
         """Server Receives input from the Client
 
@@ -73,6 +72,7 @@ def main():
         arguments = client_input.split()
         print(client_input)
         print(arguments)
+        server.send("Confirm".encode("utf-8"))
 
         if arguments[0].upper() == 'PUT':
 
@@ -92,13 +92,15 @@ def main():
 
             print(f"Client uploading file {arguments[1]}...")
             file = open(arguments[1], "w+")
-            server.send("Received the filename!".encode("utf-8"))
             size = int(server.recv(1024).decode("utf-8"))
             print(f"Receiving the file data...")
+            server.send("Confirm".encode("utf-8"))
             while size:
                 data = server.recv(1000)
                 data = data.decode("utf-8")
                 file.write(data)
+                server.send("Confirm".encode("utf-8"))
+
                 if len(data) < 1000 and size % 1000 != 0:
                     break
 
