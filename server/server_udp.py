@@ -90,7 +90,7 @@ def main():
         print(f"Client entered command: {client_input}")
         arguments = client_input.split()
 
-        if len(arguments) > 3 or len(arguments < 1):
+        if len(arguments) > 3 or len(arguments) < 1:
             arguments[0] = "Invalid number of arguments"
 
         if arguments[0].upper() == 'PUT':

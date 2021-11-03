@@ -84,7 +84,7 @@ def main():
         arguments = client_input.split()
         server.send("Confirm".encode("utf-8"))
 
-        if len(arguments) > 3 or len(arguments < 1):
+        if len(arguments) > 3 or len(arguments) < 1:
             arguments[0] = "Invalid number of arguments"
 
         if arguments[0].upper() == 'PUT':

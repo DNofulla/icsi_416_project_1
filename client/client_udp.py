@@ -75,7 +75,7 @@ def main():
         user_input = input("Enter a command: ")
         arguments = user_input.split()
 
-        if len(arguments) > 3 or len(arguments < 1):
+        if len(arguments) > 3 or len(arguments) < 1:
             arguments[0] = "Invalid number of arguments"
 
         if arguments[0].upper() == 'PUT':
